@@ -7,17 +7,17 @@ This repository includes some realstic examples of using popular go web framewor
 - [httprouter](https://github.com/julienschmidt/httprouter)
 
 ## Usage
-Example command for /v1/bananas:
+Example command for `/v1/bananas`:
 ```bash
 ht localhost:8080/v1/bananas
 ```
 
-Example command for /v1/banana/:id:
+Example command for `/v1/banana/:id`:
 ```bash
 ht localhost:8080/v1/banana/1234
 ```
 
-Example command for /v1/admin with basic auth header:
+Example command for `/v1/admin` with basic auth:
 ```bash
 ht -a foo:bar POST localhost:8080/v1/admin value=hello
 ```
