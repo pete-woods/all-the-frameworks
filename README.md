@@ -1,10 +1,10 @@
 # Comparison of Go web frameworks
 
 This repository includes some realstic examples of using popular go web frameworks:
-- echo
-- fiber
-- gin
-- httprouter
+- [echo](https://github.com/labstack/echo)
+- [fiber](https://github.com/gofiber/fiber)
+- [gin](https://github.com/gin-gonic/gin)
+- [httprouter](https://github.com/julienschmidt/httprouter)
 
 ## Usage
 Example command for /v1/bananas:
