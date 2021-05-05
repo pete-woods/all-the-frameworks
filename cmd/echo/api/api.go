@@ -41,6 +41,20 @@ func New(addr string, stats *statsd.Client) *API {
 	e.GET("/v1/bananas", a.getBananas)
 	e.GET("/v1/banana/:id", a.getBanana)
 
+	accounts := map[string]string{
+		"foo":  "bar",
+		"manu": "123",
+	}
+	authorized := e.Group("", middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
+		if accounts[username] == password {
+			c.Set("username", username)
+			return true, nil
+		}
+		return false, nil
+	}))
+
+	authorized.POST("/v1/admin", a.postAdmin)
+
 	return a
 }
 
@@ -84,5 +98,23 @@ func (a *API) getBanana(c echo.Context) error {
 	id := c.Param("id")
 	return c.JSON(http.StatusOK, banana{
 		ID: id,
+	})
+}
+
+func (a *API) postAdmin(c echo.Context) error {
+	user := c.Get("username").(string)
+
+	var v struct {
+		Value string `json:"value" binding:"required"`
+	}
+
+	err := c.Bind(&v)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"user":  user,
+		"value": v.Value,
 	})
 }

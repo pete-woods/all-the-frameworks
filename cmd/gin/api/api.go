@@ -37,6 +37,13 @@ func New(addr string, stats *statsd.Client) *API {
 	r.GET("/v1/bananas", a.getBananas)
 	r.GET("/v1/banana/:id", a.getBanana)
 
+	authorized := r.Group("", gin.BasicAuth(gin.Accounts{
+		"foo":  "bar",
+		"manu": "123",
+	}))
+
+	authorized.POST("/v1/admin", a.postAdmin)
+
 	return a
 }
 
@@ -81,4 +88,19 @@ func (a *API) getBanana(c *gin.Context) {
 	c.JSON(http.StatusOK, banana{
 		ID: id,
 	})
+}
+
+func (a *API) postAdmin(c *gin.Context) {
+	user := c.MustGet(gin.AuthUserKey).(string)
+
+	var v struct {
+		Value string `json:"value" binding:"required"`
+	}
+
+	if c.Bind(&v) == nil {
+		c.JSON(http.StatusOK, gin.H{
+			"user":  user,
+			"value": v.Value,
+		})
+	}
 }

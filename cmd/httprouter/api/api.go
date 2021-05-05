@@ -2,12 +2,12 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"time"
 
-	"github.com/julienschmidt/httprouter"
-
 	"github.com/DataDog/datadog-go/statsd"
+	"github.com/julienschmidt/httprouter"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -37,6 +37,11 @@ func New(addr string, stats *statsd.Client) *API {
 
 	r.HandlerFunc("GET", "/v1/bananas", a.getBananas)
 	r.HandlerFunc("GET", "/v1/banana/:id", a.getBanana)
+
+	r.HandlerFunc("POST", "/v1/admin", basicAuth(a.postAdmin, map[string]string{
+		"foo":  "bar",
+		"manu": "123",
+	}, "realm"))
 
 	return a
 }
@@ -85,5 +90,27 @@ func (a *API) getBanana(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusOK, banana{
 		ID: id,
+	})
+}
+
+func (a *API) postAdmin(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	user := r.Context().Value("username").(string)
+
+	var v struct {
+		Value string `json:"value" binding:"required"`
+	}
+
+	d := json.NewDecoder(r.Body)
+	err := d.Decode(&v)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"user":  user,
+		"value": v.Value,
 	})
 }

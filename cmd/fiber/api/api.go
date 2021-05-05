@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/gofiber/fiber/v2/middleware/basicauth"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 
 	"github.com/DataDog/datadog-go/statsd"
@@ -34,6 +35,15 @@ func New(addr string, stats *statsd.Client) *API {
 
 	a.app.Get("/v1/bananas", a.getBananas)
 	a.app.Get("/v1/banana/:id", a.getBanana)
+
+	authorized := a.app.Group("", basicauth.New(basicauth.Config{
+		Users: map[string]string{
+			"foo":  "bar",
+			"manu": "123",
+		},
+	}))
+
+	authorized.Post("/v1/admin", a.postAdmin)
 
 	return a
 }
@@ -84,5 +94,23 @@ func (a *API) getBanana(c *fiber.Ctx) error {
 	id := c.Params("id")
 	return c.JSON(banana{
 		ID: id,
+	})
+}
+
+func (a *API) postAdmin(c *fiber.Ctx) error {
+	user := c.Locals("username").(string)
+
+	var v struct {
+		Value string `json:"value" binding:"required"`
+	}
+
+	err := c.BodyParser(&v)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(fiber.Map{
+		"user":  user,
+		"value": v.Value,
 	})
 }
